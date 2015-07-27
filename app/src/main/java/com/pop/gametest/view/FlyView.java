@@ -1,8 +1,6 @@
-package com.pop.gametest;
+package com.pop.gametest.view;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,8 +9,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-
-import java.io.InputStream;
 
 /**
  * Created by pengfu on 15/7/20.
@@ -29,51 +25,42 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
     private final static int radius = 25;
     private final static int step = 10;
-    private final static int SPRITE_COL = 4;
-    private final static int SPRITE_ROW = 4;
-
     private Canvas canvas;
 
     private int x = radius, y = radius;
     private Paint paint;
-    private int spriteWidth;
-    private int spriteHeight;
-    private Context mContext ;
-    private FrameAnimation []spriteAnimations;
-    private Sprite mSprite;
-    private float spriteSpeed = (float)((500  * App.SCREEN_WIDTH / 480) * 0.001);
-
 
     public FlyView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mContext = context ;
+        Log.d(TAG ,"FlyView cons.") ;
         holder = getHolder();
         holder.addCallback(this);
         paint = new Paint();
         paint.setColor(Color.RED);
         paint.setAntiAlias(true);
-        initResources() ;
+        setKeepScreenOn(true);
     }
 
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        Log.d(TAG ,"surfaceCreated:"+surfaceHolder) ;
         flag = true;
         width = getMeasuredWidth() - radius;
         height = getMeasuredHeight() - radius;
-        mSprite = new Sprite(spriteAnimations,0,0,spriteWidth,spriteHeight,spriteSpeed ,width ,height);
 
         flyThread = new Thread(this);
         flyThread.start();
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+        Log.d(TAG ,"surfaceChanged:"+surfaceHolder+":format:"+format+":width:"+width+":height:"+height) ;
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        Log.d(TAG ,"surfaceDestroyed:"+surfaceHolder) ;
         flag = false;
     }
 
@@ -86,12 +73,8 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 canvas = holder.lockCanvas();
                 if (canvas != null) {
                     long startTime = System.currentTimeMillis();
-
-                    mSprite.setDirection();
-                    mSprite.updatePosition(deltaTime);
                     canvas.drawColor(Color.BLACK);
-                    mSprite.draw(canvas);
-
+                    canvas.drawCircle(x ,y ,radius,paint);
                     long endTime = System.currentTimeMillis();
                     deltaTime = endTime - startTime ;
                     if (deltaTime < 50) {
@@ -104,6 +87,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 if (canvas != null) {
                     holder.unlockCanvasAndPost(canvas);
                 }
+                calStep();
             }
         }
     }
@@ -131,55 +115,6 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
             y = radius;
         }
     }
-
-    private void initResources() {
-        Bitmap[][] spriteImgs = generateBitmapArray(mContext, R.drawable.tank, SPRITE_ROW, SPRITE_COL);
-        spriteAnimations = new FrameAnimation[SPRITE_ROW];
-        for(int i = 0; i < SPRITE_ROW; i ++) {
-            Bitmap []spriteImg = spriteImgs[i];
-            FrameAnimation spriteAnimation = new FrameAnimation(spriteImg,new int[]{150,150,150,150},true);
-            spriteAnimations[i] = spriteAnimation;
-        }
-    }
-
-    public Bitmap decodeBitmapFromRes(Context context, int resourseId) {
-        BitmapFactory.Options opt = new BitmapFactory.Options();
-        opt.inPreferredConfig = Bitmap.Config.RGB_565;
-        opt.inPurgeable = true;
-        opt.inInputShareable = true;
-
-        InputStream is = context.getResources().openRawResource(resourseId);
-        return BitmapFactory.decodeStream(is, null, opt);
-    }
-
-    public Bitmap createBitmap(Context context, Bitmap source, int row,
-                               int col, int rowTotal, int colTotal) {
-        Bitmap bitmap = Bitmap.createBitmap(source,
-                (col - 1) * source.getWidth() / colTotal,
-                (row - 1) * source.getHeight() / rowTotal, source.getWidth()
-                        / colTotal, source.getHeight() / rowTotal);
-        return bitmap;
-    }
-
-    public Bitmap[][] generateBitmapArray(Context context, int resourseId,
-                                          int row, int col) {
-        Bitmap bitmaps[][] = new Bitmap[row][col];
-        Bitmap source = decodeBitmapFromRes(context, resourseId);
-        this.spriteWidth = source.getWidth() / col;
-        this.spriteHeight = source.getHeight() / row;
-        for (int i = 1; i <= row; i++) {
-            for (int j = 1; j <= col; j++) {
-                bitmaps[i - 1][j - 1] = createBitmap(context, source, i, j,
-                        row, col);
-            }
-        }
-        if (source != null && !source.isRecycled()) {
-            source.recycle();
-            source = null;
-        }
-        return bitmaps;
-    }
-
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

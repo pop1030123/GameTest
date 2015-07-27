@@ -1,4 +1,24 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven { url "https://raw.githubusercontent.com/umeng/mvn-repo-umeng/master/repository" }
+    }
+    dependencies {
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
+
+apt {
+    arguments {
+        androidManifestFile variant.outputs[0].processResources.manifestFile
+        resourcePackageName 'com.pop.gametest'
+    }
+}
+
 
 android {
     compileSdkVersion 22
@@ -20,6 +40,8 @@ android {
 }
 
 dependencies {
+    compile 'org.androidannotations:androidannotations-api:3.2'
+    apt "org.androidannotations:androidannotations:3.2"
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.2.0'
 }
