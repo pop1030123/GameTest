@@ -14,6 +14,10 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.pop.gametest.R;
+import com.pop.gametest.Tank;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by pengfu on 15/7/20.
@@ -28,20 +32,10 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
     private int width;
     private int height;
 
-    private static int CLIP_UNIT;
-    private static float SCALE_SIZE = 2.0F;
-    private final static int step = 5;
-
-    private static final int DIRECT_UP    = 0 ;
-    private static final int DIRECT_DOWN  = 1 ;
-    private static final int DIRECT_LEFT  = 2 ;
-    private static final int DIRECT_RIGHT = 3 ;
     private Canvas canvas;
-
-    private int x, y;
     private Paint paint;
-    private Bitmap mTankBmp ;
-    private Matrix matrix = new Matrix() ;
+
+    private List<Tank> tanks ;
 
     public FlyView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -52,51 +46,16 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
         paint.setColor(Color.RED);
         paint.setAntiAlias(true);
         setKeepScreenOn(true);
-        matrix.setScale(SCALE_SIZE ,SCALE_SIZE);
-        mTankBmp = BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.tank)) ;
-        CLIP_UNIT = mTankBmp.getWidth()/4 ;
-        Log.d(TAG ,"tank_size:"+ CLIP_UNIT) ;
-    }
-
-    private Bitmap getTankDrawable(int direction){
-        Bitmap bmp = null ;
-        switch (direction){
-            case DIRECT_UP:
-                bmp = Bitmap.createBitmap(mTankBmp ,0 , CLIP_UNIT *3 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
-                break ;
-            case DIRECT_DOWN:
-                bmp = Bitmap.createBitmap(mTankBmp ,0 ,0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
-                break ;
-            case DIRECT_LEFT:
-                bmp = Bitmap.createBitmap(mTankBmp ,0 , CLIP_UNIT, CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
-                break ;
-            case DIRECT_RIGHT:
-                bmp = Bitmap.createBitmap(mTankBmp ,0 , CLIP_UNIT *2 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
-                break ;
-        }
-        return bmp ;
-    }
-    private int getDirection(int x ,int y){
-        int direct = 0 ;
-        if( y == 0){
-            direct = DIRECT_RIGHT ;
-        }else if(x == width){
-            direct = DIRECT_DOWN ;
-        }else if(y == height){
-            direct = DIRECT_LEFT ;
-        }else if(x == 0){
-            direct = DIRECT_UP ;
-        }
-        return direct ;
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         Log.d(TAG ,"surfaceCreated:"+surfaceHolder) ;
         flag = true;
-        width = getWidth() - (int)(CLIP_UNIT*SCALE_SIZE);
-        height = getHeight() - (int)(CLIP_UNIT*SCALE_SIZE);
-
+        width = getWidth();
+        height = getHeight();
+        tanks = new ArrayList<Tank>() ;
+        tanks.add(new Tank(width ,height)) ;
         flyThread = new Thread(this);
         flyThread.start();
     }
@@ -122,7 +81,9 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 if (canvas != null) {
                     long startTime = System.currentTimeMillis();
                     canvas.drawColor(Color.BLACK);
-                    canvas.drawBitmap(getTankDrawable(getDirection(x ,y)), x, y, paint);
+                    for (Tank t : tanks){
+                        t.draw(canvas);
+                    }
                     long endTime = System.currentTimeMillis();
                     deltaTime = endTime - startTime ;
                     if (deltaTime < 50) {
@@ -135,37 +96,20 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 if (canvas != null) {
                     holder.unlockCanvasAndPost(canvas);
                 }
-                calStep();
             }
-        }
-    }
-
-    private void calStep() {
-        if (x < width && y == 0) {
-            x += step;
-        } else if (x == width && y < height) {
-            y += step;
-        } else if (x <= width && x > 0 && y == height) {
-            x -= step;
-        } else if (x == 0 && y <= height && y > 0) {
-            y -= step;
-        }
-        if (x > width) {
-            x = width;
-        }
-        if (y > height) {
-            y = height;
-        }
-        if (x < 0) {
-            x = 0;
-        }
-        if (y < 0) {
-            y = 0;
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return super.onTouchEvent(event);
+        Log.d(TAG ,"onTouchEvent:"+event.getAction()) ;
+        switch (event.getAction()){
+            case MotionEvent.ACTION_UP:
+                if(tanks.size() < 4){
+                    tanks.add(new Tank(width ,height)) ;
+                }
+                break ;
+        }
+        return true;
     }
 }

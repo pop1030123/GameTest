@@ -1,6 +1,7 @@
 package com.pop.gametest;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.DisplayMetrics;
 
 /**
@@ -31,5 +32,12 @@ public class App extends Application {
         SCREEN_WIDTH = dm.widthPixels;
         SCREEN_HEIGHT = dm.heightPixels;
         SCREEN_DENSITY = dm.density;
+        context = this ;
+    }
+
+    private static Context context ;
+
+    public static Context getContext(){
+        return context ;
     }
 }
