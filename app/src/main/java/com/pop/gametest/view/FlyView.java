@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.pop.gametest.App;
 import com.pop.gametest.R;
 import com.pop.gametest.Tank;
 
@@ -37,14 +38,20 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
     private List<Tank> tanks ;
 
+    private Bitmap mTile ;
+    public static Bitmap sSheet ;
+    public static int UNIT ;
+
     public FlyView(Context context, AttributeSet attrs) {
         super(context, attrs);
         Log.d(TAG, "FlyView cons.") ;
         holder = getHolder();
         holder.addCallback(this);
         paint = new Paint();
-        paint.setColor(Color.RED);
         paint.setAntiAlias(true);
+        sSheet = BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.tanks_sheet)) ;
+        UNIT = sSheet.getWidth() / 8 ;
+        mTile = Bitmap.createBitmap(sSheet,0,0,UNIT ,UNIT) ;
         setKeepScreenOn(true);
     }
 
@@ -80,7 +87,17 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 canvas = holder.lockCanvas();
                 if (canvas != null) {
                     long startTime = System.currentTimeMillis();
-                    canvas.drawColor(Color.BLACK);
+                    int left = 0 ;
+                    int top = 0 ;
+                    while (left < width){
+                        while (top < height){
+                            canvas.drawBitmap(mTile ,left ,top ,paint);
+                            top += UNIT ;
+                        }
+                        top = 0 ;
+                        left += UNIT ;
+                    }
+
                     for (Tank t : tanks){
                         t.draw(canvas);
                     }

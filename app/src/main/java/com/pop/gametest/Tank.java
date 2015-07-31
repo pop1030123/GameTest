@@ -7,6 +7,8 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 
+import com.pop.gametest.view.FlyView;
+
 /**
  * Created by pengfu on 15/7/30.
  */
@@ -21,8 +23,6 @@ public class Tank {
     public int left ;
     public int top ;
 
-    private Bitmap mTankBmp ;
-
     private int region_x ;
     private int region_y ;
 
@@ -34,11 +34,10 @@ public class Tank {
     private static int CLIP_UNIT;
 
     public Tank(int x ,int y) {
-        mTankBmp = BitmapFactory.decodeStream(App.getContext().getResources().openRawResource(R.raw.tank)) ;
-        CLIP_UNIT = mTankBmp.getWidth()/4  ;
+
+        CLIP_UNIT = FlyView.UNIT;
         region_x = (int)(x - CLIP_UNIT*SCALE_SIZE) ;
         region_y = (int)(y - CLIP_UNIT*SCALE_SIZE) ;
-        matrix.setScale(SCALE_SIZE, SCALE_SIZE);
     }
 
     public void draw(Canvas canvas){
@@ -48,20 +47,26 @@ public class Tank {
 
     private Bitmap getTankDrawable(int direction){
         Bitmap bmp = null ;
+        matrix.reset();
+        matrix.setScale(SCALE_SIZE, SCALE_SIZE);
         switch (direction){
             case DIRECT_UP:
-                bmp = Bitmap.createBitmap(mTankBmp ,0 , CLIP_UNIT *3 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
+                bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
                 break ;
             case DIRECT_DOWN:
-                bmp = Bitmap.createBitmap(mTankBmp ,0 ,0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
+                matrix.postRotate(180) ;
+                bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
                 break ;
             case DIRECT_LEFT:
-                bmp = Bitmap.createBitmap(mTankBmp ,0 , CLIP_UNIT, CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
+                matrix.postRotate(-90) ;
+                bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
                 break ;
             case DIRECT_RIGHT:
-                bmp = Bitmap.createBitmap(mTankBmp ,0 , CLIP_UNIT *2 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
+                matrix.postRotate(90) ;
+                bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
                 break ;
         }
+//        bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
         return bmp ;
     }
     private int getDirection(float x ,float y){
