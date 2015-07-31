@@ -74,12 +74,12 @@ public class Tank {
         int[] left_top = new int[2] ;
         anim_index = anim_index % ANIM_SIZE ;
         switch (anim_index){
-            case 0:
+            case 7:
                 left_top[0] = 0 ;
                 left_top[1] = CLIP_UNIT ;
                 break ;
             default:
-                left_top[0] = (anim_index-1)*CLIP_UNIT ;
+                left_top[0] = (anim_index+1)*CLIP_UNIT ;
                 left_top[1] = 0 ;
         }
         anim_index ++ ;
