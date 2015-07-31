@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.util.Log;
 
 import com.pop.gametest.view.FlyView;
 
@@ -20,16 +21,18 @@ public class Tank {
     private static final int DIRECT_DOWN  = 1 ;
     private static final int DIRECT_LEFT  = 2 ;
     private static final int DIRECT_RIGHT = 3 ;
+    private static final String TAG = "Tank:";
     public int left ;
     public int top ;
 
     private int region_x ;
     private int region_y ;
+    private int anim_index ;
 
     private Matrix matrix = new Matrix() ;
 
     private static float SCALE_SIZE = 2.0F;
-
+    private static int ANIM_SIZE = 8;
 
     private static int CLIP_UNIT;
 
@@ -47,28 +50,42 @@ public class Tank {
 
     private Bitmap getTankDrawable(int direction){
         Bitmap bmp = null ;
+        int[] left_top = getAnimPos() ;
         matrix.reset();
         matrix.setScale(SCALE_SIZE, SCALE_SIZE);
         switch (direction){
             case DIRECT_UP:
-                bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
                 break ;
             case DIRECT_DOWN:
                 matrix.postRotate(180) ;
-                bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
                 break ;
             case DIRECT_LEFT:
                 matrix.postRotate(-90) ;
-                bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
                 break ;
             case DIRECT_RIGHT:
                 matrix.postRotate(90) ;
-                bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
                 break ;
         }
-//        bmp = Bitmap.createBitmap(FlyView.sSheet ,CLIP_UNIT , 0 , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
+        bmp = Bitmap.createBitmap(FlyView.sSheet ,left_top[0] ,left_top[1] , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
         return bmp ;
     }
+
+    private int[] getAnimPos(){
+        int[] left_top = new int[2] ;
+        anim_index = anim_index % ANIM_SIZE ;
+        switch (anim_index){
+            case 0:
+                left_top[0] = 0 ;
+                left_top[1] = CLIP_UNIT ;
+                break ;
+            default:
+                left_top[0] = (anim_index-1)*CLIP_UNIT ;
+                left_top[1] = 0 ;
+        }
+        anim_index ++ ;
+        return  left_top ;
+    }
+
     private int getDirection(float x ,float y){
         int direct = 0 ;
         if( y == 0){
