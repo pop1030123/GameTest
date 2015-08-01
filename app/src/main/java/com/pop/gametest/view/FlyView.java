@@ -14,6 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.pop.gametest.App;
+import com.pop.gametest.Bullet;
 import com.pop.gametest.R;
 import com.pop.gametest.Tank;
 
@@ -30,17 +31,18 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
     private Thread flyThread;
     private boolean flag;
 
-    private int width;
-    private int height;
-
     private Canvas canvas;
     private Paint paint;
 
     private List<Tank> tanks ;
 
+    public static float SCALE_SIZE = 2.0F;
     private Bitmap mTile ;
     public static Bitmap sSheet ;
     public static int UNIT ;
+
+    public static int GAME_REGION_X ;
+    public static int GAME_REGION_Y ;
 
     public FlyView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -59,10 +61,10 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         Log.d(TAG ,"surfaceCreated:"+surfaceHolder) ;
         flag = true;
-        width = getWidth();
-        height = getHeight();
+        GAME_REGION_X = getWidth();
+        GAME_REGION_Y = getHeight();
         tanks = new ArrayList<Tank>() ;
-        tanks.add(new Tank(width ,height)) ;
+        tanks.add(new Tank()) ;
         flyThread = new Thread(this);
         flyThread.start();
     }
@@ -89,8 +91,8 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     long startTime = System.currentTimeMillis();
                     int left = 0 ;
                     int top = 0 ;
-                    while (left < width){
-                        while (top < height){
+                    while (left < GAME_REGION_X){
+                        while (top < GAME_REGION_Y){
                             canvas.drawBitmap(mTile ,left ,top ,paint);
                             top += UNIT ;
                         }
@@ -115,6 +117,10 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 }
             }
         }
+
+        for (Tank t:tanks){
+            t.destroy();
+        }
     }
 
     @Override
@@ -123,7 +129,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
         switch (event.getAction()){
             case MotionEvent.ACTION_UP:
                 if(tanks.size() < 4){
-                    tanks.add(new Tank(width ,height)) ;
+                    tanks.add(new Tank()) ;
                 }
                 break ;
         }

@@ -1,19 +1,21 @@
 package com.pop.gametest;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
 
 import com.pop.gametest.view.FlyView;
 
+import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * Created by pengfu on 15/7/30.
  */
-public class Tank {
+public class Tank implements Bullet.Callback {
 
     private final static int step = 5;
 
@@ -25,26 +27,39 @@ public class Tank {
     public int left ;
     public int top ;
 
-    private int region_x ;
-    private int region_y ;
+    public static int REGION_X;
+    public static int REGION_Y;
     private int anim_index ;
 
     private Matrix matrix = new Matrix() ;
 
-    private static float SCALE_SIZE = 2.0F;
     private static int ANIM_SIZE = 8;
 
     private static int CLIP_UNIT;
+    private Timer mBulletTimer ;
 
-    public Tank(int x ,int y) {
-
+    private LinkedList<Bullet> mBullets ;
+    public Tank() {
         CLIP_UNIT = FlyView.UNIT;
-        region_x = (int)(x - CLIP_UNIT*SCALE_SIZE) ;
-        region_y = (int)(y - CLIP_UNIT*SCALE_SIZE) ;
+        REGION_X = (int)(FlyView.GAME_REGION_X - CLIP_UNIT*FlyView.SCALE_SIZE) ;
+        REGION_Y = (int)(FlyView.GAME_REGION_Y - CLIP_UNIT*FlyView.SCALE_SIZE) ;
+        mBullets = new LinkedList<Bullet>() ;
+        mBulletTimer = new Timer() ;
+        mBulletTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d(TAG, "add bullet:" + left + "X" + top);
+                mBullets.addFirst(new Bullet(left, top, Tank.this));
+            }
+        }, 1000, 1000);
     }
 
     public void draw(Canvas canvas){
         canvas.drawBitmap(getTankDrawable(getDirection(left, top)), left, top, new Paint());
+        for (Bullet b :mBullets)
+        {
+            b.draw(canvas);
+        }
         calStep();
     }
 
@@ -52,7 +67,7 @@ public class Tank {
         Bitmap bmp = null ;
         int[] left_top = getAnimPos() ;
         matrix.reset();
-        matrix.setScale(SCALE_SIZE, SCALE_SIZE);
+        matrix.setScale(FlyView.SCALE_SIZE, FlyView.SCALE_SIZE);
         switch (direction){
             case DIRECT_UP:
                 break ;
@@ -90,9 +105,9 @@ public class Tank {
         int direct = 0 ;
         if( y == 0){
             direct = DIRECT_RIGHT ;
-        }else if(x == region_x){
+        }else if(x == REGION_X){
             direct = DIRECT_DOWN ;
-        }else if(y == region_y){
+        }else if(y == REGION_Y){
             direct = DIRECT_LEFT ;
         }else if(x == 0){
             direct = DIRECT_UP ;
@@ -101,20 +116,20 @@ public class Tank {
     }
 
     private void calStep() {
-        if (left < region_x && top == 0) {
+        if (left < REGION_X && top == 0) {
             left += step;
-        } else if (left == region_x && top < region_y) {
+        } else if (left == REGION_X && top < REGION_Y) {
             top += step;
-        } else if (left <= region_x && left > 0 && top == region_y) {
+        } else if (left <= REGION_X && left > 0 && top == REGION_Y) {
             left -= step;
-        } else if (left == 0 && top <= region_y && top > 0) {
+        } else if (left == 0 && top <= REGION_Y && top > 0) {
             top -= step;
         }
-        if (left > region_x) {
-            left = region_x;
+        if (left > REGION_X) {
+            left = REGION_X;
         }
-        if (top > region_y) {
-            top = region_y;
+        if (top > REGION_Y) {
+            top = REGION_Y;
         }
         if (left < 0) {
             left = 0;
@@ -124,4 +139,15 @@ public class Tank {
         }
     }
 
+    public void destroy(){
+        if(mBulletTimer != null){
+            mBulletTimer.cancel();
+        }
+    }
+
+    @Override
+    public void onOutRegion(int left, int top) {
+        Log.d(TAG ,"onOutRegion:"+mBullets.size()+":left:"+left+":top:"+top) ;
+        mBullets.removeLast() ;
+    }
 }
