@@ -1,21 +1,20 @@
-package com.pop.gametest;
+package com.pop.gametest.sprite;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.util.Log;
 
+import com.pop.gametest.L;
 import com.pop.gametest.view.FlyView;
 
-import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
  * Created by pengfu on 15/7/30.
  */
-public class Tank implements Bullet.Callback {
+public class Tank implements Sprite {
 
     private final static int step = 5;
 
@@ -38,29 +37,22 @@ public class Tank implements Bullet.Callback {
     private static int CLIP_UNIT;
     private Timer mBulletTimer ;
 
-    private LinkedList<Bullet> mBullets ;
     public Tank() {
         CLIP_UNIT = FlyView.UNIT;
         REGION_X = (int)(FlyView.GAME_REGION_X - CLIP_UNIT*FlyView.SCALE_SIZE) ;
         REGION_Y = (int)(FlyView.GAME_REGION_Y - CLIP_UNIT*FlyView.SCALE_SIZE) ;
-        mBullets = new LinkedList<Bullet>() ;
         mBulletTimer = new Timer() ;
         mBulletTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                Log.d(TAG, "add bullet:" + left + "X" + top);
-                mBullets.addFirst(new Bullet(left, top, Tank.this));
+                L.d(TAG, "add bullet:" + left + "X" + top);
+                BulletManager.getInstance().getBullets().add(new Bullet(left, top, BulletManager.getInstance()));
             }
         }, 1000, 1000);
     }
 
     public void draw(Canvas canvas){
         canvas.drawBitmap(getTankDrawable(getDirection(left, top)), left, top, new Paint());
-        for (Bullet b :mBullets)
-        {
-            b.draw(canvas);
-        }
-        calStep();
     }
 
     private Bitmap getTankDrawable(int direction){
@@ -115,7 +107,7 @@ public class Tank implements Bullet.Callback {
         return direct ;
     }
 
-    private void calStep() {
+    public void calStep() {
         if (left < REGION_X && top == 0) {
             left += step;
         } else if (left == REGION_X && top < REGION_Y) {
@@ -146,8 +138,10 @@ public class Tank implements Bullet.Callback {
     }
 
     @Override
-    public void onOutRegion(int left, int top) {
-        Log.d(TAG ,"onOutRegion:"+mBullets.size()+":left:"+left+":top:"+top) ;
-        mBullets.removeLast() ;
+    public int[] getLeftAndTop() {
+        int[] lt = new int[2] ;
+        lt[0] = left ;
+        lt[1] = top ;
+        return lt;
     }
 }

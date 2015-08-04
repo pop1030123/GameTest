@@ -4,21 +4,20 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.pop.gametest.App;
-import com.pop.gametest.Bullet;
+import com.pop.gametest.sprite.Bullet;
+import com.pop.gametest.sprite.BulletManager;
+import com.pop.gametest.L;
 import com.pop.gametest.R;
-import com.pop.gametest.Tank;
+import com.pop.gametest.sprite.Tank;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -40,26 +39,28 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
     private Bitmap mTile ;
     public static Bitmap sSheet ;
     public static int UNIT ;
+    public static int SCALED_UNIT ;
 
     public static int GAME_REGION_X ;
     public static int GAME_REGION_Y ;
 
     public FlyView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        Log.d(TAG, "FlyView cons.") ;
+        L.d(TAG, "FlyView cons.") ;
         holder = getHolder();
         holder.addCallback(this);
         paint = new Paint();
         paint.setAntiAlias(true);
         sSheet = BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.tanks_sheet)) ;
         UNIT = sSheet.getWidth() / 8 ;
+        SCALED_UNIT = (int)(UNIT * SCALE_SIZE) ;
         mTile = Bitmap.createBitmap(sSheet,0,0,UNIT ,UNIT) ;
         setKeepScreenOn(true);
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        Log.d(TAG ,"surfaceCreated:"+surfaceHolder) ;
+        L.d(TAG ,"surfaceCreated:"+surfaceHolder) ;
         flag = true;
         GAME_REGION_X = getWidth();
         GAME_REGION_Y = getHeight();
@@ -71,12 +72,12 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
-        Log.d(TAG ,"surfaceChanged:"+surfaceHolder+":format:"+format+":width:"+width+":height:"+height) ;
+        L.d(TAG, "surfaceChanged:" + surfaceHolder + ":format:" + format + ":width:" + width + ":height:" + height) ;
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        Log.d(TAG ,"surfaceDestroyed:"+surfaceHolder) ;
+        L.d(TAG ,"surfaceDestroyed:"+surfaceHolder) ;
         flag = false;
     }
 
@@ -103,14 +104,34 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     for (Tank t : tanks){
                         t.draw(canvas);
                     }
+                    for (Bullet b: BulletManager.getInstance().getBullets()){
+                        b.draw(canvas);
+                    }
+                    for (Bullet b: BulletManager.getInstance().getBullets()){
+                        for (Tank t:tanks){
+                            if(isHit(t.getLeftAndTop() ,b.getLeftAndTop())){
+                                canvas.drawText("Bomb!!!" ,t.getLeftAndTop()[0] ,t.getLeftAndTop()[1] ,paint);
+                            }
+                        }
+                    }
+
+                    for (Tank t : tanks){
+                        t.calStep();
+                    }
+                    // TODO :ConcurrentModificationException here because Removing and foreach doing at the same time.
+                    for (Bullet b: BulletManager.getInstance().getBullets()){
+                        b.calStep();
+                    }
+
                     long endTime = System.currentTimeMillis();
                     deltaTime = endTime - startTime ;
+                    L.d(TAG ,"one draw cal time:"+deltaTime);
                     if (deltaTime < 50) {
                         Thread.currentThread().sleep(50 - deltaTime);
                     }
                 }
             } catch (Exception e) {
-                Log.d(TAG, "e:" + e);
+                L.d(TAG, "e:" + e);
             } finally {
                 if (canvas != null) {
                     holder.unlockCanvasAndPost(canvas);
@@ -123,9 +144,19 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
         }
     }
 
+    private boolean isHit(int[] a ,int[] b){
+        boolean leftHit = Math.abs(a[0] - b[0]) < SCALED_UNIT ;
+        boolean topHit  = Math.abs(a[1] - b[1]) < SCALED_UNIT ;
+        if(leftHit && topHit){
+            L.d(TAG ,"a:"+ Arrays.toString(a)+":b:"+Arrays.toString(b));
+            L.d(TAG ,"isHit:"+leftHit+":"+topHit);
+        }
+        return leftHit && topHit ;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.d(TAG ,"onTouchEvent:"+event.getAction()) ;
+        L.d(TAG ,"onTouchEvent:"+event.getAction()) ;
         switch (event.getAction()){
             case MotionEvent.ACTION_UP:
                 if(tanks.size() < 4){
