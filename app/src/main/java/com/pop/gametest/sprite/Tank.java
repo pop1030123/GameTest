@@ -34,19 +34,17 @@ public class Tank implements Sprite {
 
     private static int ANIM_SIZE = 8;
 
-    private static int CLIP_UNIT;
     private Timer mBulletTimer ;
 
     public Tank() {
-        CLIP_UNIT = FlyView.UNIT;
-        REGION_X = (int)(FlyView.GAME_REGION_X - CLIP_UNIT*FlyView.SCALE_SIZE) ;
-        REGION_Y = (int)(FlyView.GAME_REGION_Y - CLIP_UNIT*FlyView.SCALE_SIZE) ;
+        REGION_X = (int)(FlyView.GAME_REGION_X - FlyView.SCALED_UNIT) ;
+        REGION_Y = (int)(FlyView.GAME_REGION_Y - FlyView.SCALED_UNIT) ;
         mBulletTimer = new Timer() ;
         mBulletTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 L.d(TAG, "add bullet:" + left + "X" + top);
-                BulletManager.getInstance().getBullets().add(new Bullet(left, top, BulletManager.getInstance()));
+                SpriteManager.getInstance().getBullets().add(new Bullet(left, top, SpriteManager.getInstance()));
             }
         }, 1000, 1000);
     }
@@ -73,7 +71,7 @@ public class Tank implements Sprite {
                 matrix.postRotate(90) ;
                 break ;
         }
-        bmp = Bitmap.createBitmap(FlyView.sSheet ,left_top[0] ,left_top[1] , CLIP_UNIT, CLIP_UNIT,matrix ,false) ;
+        bmp = Bitmap.createBitmap(FlyView.sSheet ,left_top[0] ,left_top[1] , FlyView.UNIT, FlyView.UNIT,matrix ,false) ;
         return bmp ;
     }
 
@@ -83,10 +81,10 @@ public class Tank implements Sprite {
         switch (anim_index){
             case 7:
                 left_top[0] = 0 ;
-                left_top[1] = CLIP_UNIT ;
+                left_top[1] = FlyView.UNIT ;
                 break ;
             default:
-                left_top[0] = (anim_index+1)*CLIP_UNIT ;
+                left_top[0] = (anim_index+1)*FlyView.UNIT ;
                 left_top[1] = 0 ;
         }
         anim_index ++ ;

@@ -11,14 +11,13 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.pop.gametest.sprite.Bullet;
-import com.pop.gametest.sprite.BulletManager;
+import com.pop.gametest.sprite.SpriteManager;
 import com.pop.gametest.L;
 import com.pop.gametest.R;
+import com.pop.gametest.sprite.Explode;
 import com.pop.gametest.sprite.Tank;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by pengfu on 15/7/20.
@@ -32,8 +31,6 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
     private Canvas canvas;
     private Paint paint;
-
-    private List<Tank> tanks ;
 
     public static float SCALE_SIZE = 2.0F;
     private Bitmap mTile ;
@@ -64,8 +61,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
         flag = true;
         GAME_REGION_X = getWidth();
         GAME_REGION_Y = getHeight();
-        tanks = new ArrayList<Tank>() ;
-        tanks.add(new Tank()) ;
+        SpriteManager.getInstance().getTanks().add(new Tank()) ;
         flyThread = new Thread(this);
         flyThread.start();
     }
@@ -101,25 +97,40 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         left += UNIT ;
                     }
 
-                    for (Tank t : tanks){
+                    // drawing
+                    for (Tank t : SpriteManager.getInstance().getTanks()){
                         t.draw(canvas);
                     }
-                    for (Bullet b: BulletManager.getInstance().getBullets()){
+                    for (Bullet b: SpriteManager.getInstance().getBullets()){
                         b.draw(canvas);
                     }
-                    for (Bullet b: BulletManager.getInstance().getBullets()){
-                        for (Tank t:tanks){
+                    for (Explode e: SpriteManager.getInstance().getExplodes()){
+                        e.draw(canvas);
+                    }
+                    // calculate
+                    for (Bullet b: SpriteManager.getInstance().getBullets()){
+                        if(SpriteManager.getInstance().isExpired(b)){
+                            continue;
+                        }
+                        for (Tank t: SpriteManager.getInstance().getTanks()){
+                            if(SpriteManager.getInstance().isExpired(t)){
+                                continue;
+                            }
                             if(isHit(t.getLeftAndTop() ,b.getLeftAndTop())){
-                                canvas.drawText("Bomb!!!" ,t.getLeftAndTop()[0] ,t.getLeftAndTop()[1] ,paint);
+                                SpriteManager.getInstance().getExplodes().add(new Explode(t.left ,t.top , SpriteManager.getInstance())) ;
+                                SpriteManager.getInstance().addExpired(t);
+                                SpriteManager.getInstance().addExpired(b);
                             }
                         }
                     }
 
-                    for (Tank t : tanks){
+                    SpriteManager.getInstance().clearExpired();
+
+                    for (Tank t : SpriteManager.getInstance().getTanks()){
                         t.calStep();
                     }
                     // TODO :ConcurrentModificationException here because Removing and foreach doing at the same time.
-                    for (Bullet b: BulletManager.getInstance().getBullets()){
+                    for (Bullet b: SpriteManager.getInstance().getBullets()){
                         b.calStep();
                     }
 
@@ -139,7 +150,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
             }
         }
 
-        for (Tank t:tanks){
+        for (Tank t: SpriteManager.getInstance().getTanks()){
             t.destroy();
         }
     }
@@ -159,8 +170,8 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
         L.d(TAG ,"onTouchEvent:"+event.getAction()) ;
         switch (event.getAction()){
             case MotionEvent.ACTION_UP:
-                if(tanks.size() < 4){
-                    tanks.add(new Tank()) ;
+                if(SpriteManager.getInstance().getTanks().size() < 4){
+                    SpriteManager.getInstance().getTanks().add(new Tank()) ;
                 }
                 break ;
         }
