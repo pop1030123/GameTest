@@ -149,15 +149,12 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 }
             }
         }
-
-        for (Tank t: SpriteManager.getInstance().getTanks()){
-            t.destroy();
-        }
+        SpriteManager.getInstance().reset();
     }
 
     private boolean isHit(int[] a ,int[] b){
-        boolean leftHit = Math.abs(a[0] - b[0]) < SCALED_UNIT ;
-        boolean topHit  = Math.abs(a[1] - b[1]) < SCALED_UNIT ;
+        boolean leftHit = Math.abs(a[0] - b[0]) < Bullet.BULLET_SIZE ;
+        boolean topHit  = Math.abs(a[1] - b[1]) < Bullet.BULLET_SIZE ;
         if(leftHit && topHit){
             L.d(TAG ,"a:"+ Arrays.toString(a)+":b:"+Arrays.toString(b));
             L.d(TAG ,"isHit:"+leftHit+":"+topHit);

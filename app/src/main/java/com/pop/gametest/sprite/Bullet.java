@@ -18,11 +18,16 @@ public class Bullet implements Sprite {
     private static int STEP = FlyView.UNIT ;
     private Callback mCallback ;
 
+    public static int BULLET_SIZE ;
+    private static int BULLET_EXTRA_SIZE ;
     private static Bitmap sBmp ;
     static{
         Matrix matrix = new Matrix() ;
         matrix.postScale(FlyView.SCALE_SIZE ,FlyView.SCALE_SIZE) ;
-        sBmp = Bitmap.createBitmap(FlyView.sSheet ,FlyView.UNIT*5,FlyView.UNIT*2,FlyView.UNIT,FlyView.UNIT ,matrix ,false);
+        int clip_unit = FlyView.UNIT/3 ;
+        BULLET_SIZE = (int)(clip_unit * FlyView.SCALE_SIZE) ;
+        BULLET_EXTRA_SIZE = FlyView.SCALED_UNIT/2 - BULLET_SIZE/2 ;
+        sBmp = Bitmap.createBitmap(FlyView.sSheet ,FlyView.UNIT*5+clip_unit,FlyView.UNIT*2+clip_unit,FlyView.UNIT-clip_unit,FlyView.UNIT-clip_unit ,matrix ,false);
     }
 
     public Bullet(int l ,int t ,Callback c){
@@ -42,7 +47,7 @@ public class Bullet implements Sprite {
     }
 
     public void draw(Canvas canvas){
-        canvas.drawBitmap(sBmp, left, top, new Paint());
+        canvas.drawBitmap(sBmp, left+BULLET_EXTRA_SIZE, top+BULLET_EXTRA_SIZE, new Paint());
     }
 
     public void calStep(){

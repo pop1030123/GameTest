@@ -80,4 +80,13 @@ public class SpriteManager implements Bullet.Callback ,Explode.Callback {
             mExpiredTanks.clear();
         }
     }
+    public void reset(){
+        clearExpired();
+        for (Tank t:mTanks){
+            t.destroy();
+        }
+        mTanks.clear();
+        mBullets.clear();
+        mExplodes.clear();
+    }
 }
