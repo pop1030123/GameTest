@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 
+import com.pop.gametest.Const;
 import com.pop.gametest.L;
 import com.pop.gametest.view.FlyView;
 
@@ -18,10 +19,6 @@ public class Tank implements Sprite {
 
     private final static int step = 5;
 
-    private static final int DIRECT_UP    = 0 ;
-    private static final int DIRECT_DOWN  = 1 ;
-    private static final int DIRECT_LEFT  = 2 ;
-    private static final int DIRECT_RIGHT = 3 ;
     private static final String TAG = "Tank:";
     public int left ;
     public int top ;
@@ -43,7 +40,7 @@ public class Tank implements Sprite {
         mBulletTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                L.d(TAG, "add bullet:" + left + "X" + top);
+//                L.d(TAG, "add bullet:" + left + "X" + top);
                 SpriteManager.getInstance().getBullets().add(new Bullet(left, top, SpriteManager.getInstance()));
             }
         }, 1000, 1000);
@@ -59,15 +56,15 @@ public class Tank implements Sprite {
         matrix.reset();
         matrix.setScale(FlyView.SCALE_SIZE, FlyView.SCALE_SIZE);
         switch (direction){
-            case DIRECT_UP:
+            case Const.DIRECT_UP:
                 break ;
-            case DIRECT_DOWN:
+            case Const.DIRECT_DOWN:
                 matrix.postRotate(180) ;
                 break ;
-            case DIRECT_LEFT:
+            case Const.DIRECT_LEFT:
                 matrix.postRotate(-90) ;
                 break ;
-            case DIRECT_RIGHT:
+            case Const.DIRECT_RIGHT:
                 matrix.postRotate(90) ;
                 break ;
         }
@@ -94,13 +91,13 @@ public class Tank implements Sprite {
     private int getDirection(float x ,float y){
         int direct = 0 ;
         if( y == 0){
-            direct = DIRECT_RIGHT ;
+            direct = Const.DIRECT_RIGHT ;
         }else if(x == REGION_X){
-            direct = DIRECT_DOWN ;
+            direct = Const.DIRECT_DOWN ;
         }else if(y == REGION_Y){
-            direct = DIRECT_LEFT ;
+            direct = Const.DIRECT_LEFT ;
         }else if(x == 0){
-            direct = DIRECT_UP ;
+            direct = Const.DIRECT_UP ;
         }
         return direct ;
     }

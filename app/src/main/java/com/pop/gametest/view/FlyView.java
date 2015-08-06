@@ -4,12 +4,14 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.pop.gametest.Const;
 import com.pop.gametest.sprite.Bullet;
 import com.pop.gametest.sprite.SpriteManager;
 import com.pop.gametest.L;
@@ -33,7 +35,10 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
     private Paint paint;
 
     public static float SCALE_SIZE = 2.0F;
+    public static int TOUCH_DISTANCE = 70;
     private Bitmap mTile ;
+    private static Bitmap mControlView ;
+    private static float control_size ;
     public static Bitmap sSheet ;
     public static int UNIT ;
     public static int SCALED_UNIT ;
@@ -48,6 +53,11 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
         holder.addCallback(this);
         paint = new Paint();
         paint.setAntiAlias(true);
+        Matrix matrix = new Matrix() ;
+        matrix.postScale(SCALE_SIZE ,SCALE_SIZE) ;
+        Bitmap control = BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.control)) ;
+        mControlView = Bitmap.createBitmap(control ,0,0,control.getWidth() ,control.getHeight() ,matrix ,false) ;
+        control_size = mControlView.getWidth() ;
         sSheet = BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.tanks_sheet)) ;
         UNIT = sSheet.getWidth() / 8 ;
         SCALED_UNIT = (int)(UNIT * SCALE_SIZE) ;
@@ -96,7 +106,6 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         top = 0 ;
                         left += UNIT ;
                     }
-
                     // drawing
                     for (Tank t : SpriteManager.getInstance().getTanks()){
                         t.draw(canvas);
@@ -106,6 +115,9 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     }
                     for (Explode e: SpriteManager.getInstance().getExplodes()){
                         e.draw(canvas);
+                    }
+                    if(isTouch){
+                        canvas.drawBitmap(mControlView ,pos_x-control_size/2,pos_y-control_size/2,paint);
                     }
                     // calculate
                     for (Bullet b: SpriteManager.getInstance().getBullets()){
@@ -136,7 +148,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
                     long endTime = System.currentTimeMillis();
                     deltaTime = endTime - startTime ;
-                    L.d(TAG ,"one draw cal time:"+deltaTime);
+//                    L.d(TAG ,"one draw cal time:"+deltaTime);
                     if (deltaTime < 50) {
                         Thread.currentThread().sleep(50 - deltaTime);
                     }
@@ -161,17 +173,51 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
         }
         return leftHit && topHit ;
     }
+    private boolean isTouch  ;
+    private float pos_x ;
+    private float pos_y ;
+    private float cur_x ;
+    private float cur_y ;
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        L.d(TAG ,"onTouchEvent:"+event.getAction()) ;
         switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                isTouch = true ;
+                pos_x = event.getX() ;
+                pos_y = event.getY() ;
+                break ;
+            case MotionEvent.ACTION_MOVE:
+                isTouch = true ;
+                cur_x = event.getX() ;
+                cur_y = event.getY() ;
+                int direction = getDirection(cur_x ,cur_y) ;
+                break ;
             case MotionEvent.ACTION_UP:
+                isTouch = false ;
                 if(SpriteManager.getInstance().getTanks().size() < 4){
                     SpriteManager.getInstance().getTanks().add(new Tank()) ;
                 }
                 break ;
         }
         return true;
+    }
+
+
+    private int getDirection(float x ,float y){
+        int direction = -1 ;
+        float dir_x = x - pos_x ;
+        float dir_y = y - pos_y ;
+        if(dir_x > TOUCH_DISTANCE){
+            direction = Const.DIRECT_RIGHT ;
+        }else if(dir_x < -TOUCH_DISTANCE){
+            direction = Const.DIRECT_LEFT ;
+        }else if(dir_y > TOUCH_DISTANCE){
+            direction = Const.DIRECT_DOWN ;
+        }else if(dir_y < -TOUCH_DISTANCE){
+            direction = Const.DIRECT_UP ;
+        }
+        return direction ;
     }
 }

@@ -55,7 +55,7 @@ public class SpriteManager implements Bullet.Callback ,Explode.Callback {
 
     @Override
     public void onOutRegion(Bullet b) {
-        L.d(TAG, "onOutRegion:" + b) ;
+//        L.d(TAG, "onOutRegion:" + b) ;
         mBullets.remove(b) ;
     }
 
