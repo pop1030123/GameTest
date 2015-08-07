@@ -13,6 +13,7 @@ import android.view.SurfaceView;
 
 import com.pop.gametest.Const;
 import com.pop.gametest.sprite.Bullet;
+import com.pop.gametest.sprite.MyTank;
 import com.pop.gametest.sprite.SpriteManager;
 import com.pop.gametest.L;
 import com.pop.gametest.R;
@@ -46,6 +47,8 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
     public static int GAME_REGION_X ;
     public static int GAME_REGION_Y ;
 
+    private MyTank myTank ;
+
     public FlyView(Context context, AttributeSet attrs) {
         super(context, attrs);
         L.d(TAG, "FlyView cons.") ;
@@ -72,6 +75,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
         GAME_REGION_X = getWidth();
         GAME_REGION_Y = getHeight();
         SpriteManager.getInstance().getTanks().add(new Tank()) ;
+        myTank = new MyTank() ;
         flyThread = new Thread(this);
         flyThread.start();
     }
@@ -116,6 +120,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     for (Explode e: SpriteManager.getInstance().getExplodes()){
                         e.draw(canvas);
                     }
+                    myTank.draw(canvas ,mDirection);
                     if(isTouch){
                         canvas.drawBitmap(mControlView ,pos_x-control_size/2,pos_y-control_size/2,paint);
                     }
@@ -145,6 +150,10 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     for (Bullet b: SpriteManager.getInstance().getBullets()){
                         b.calStep();
                     }
+                    myTank.calStep(mDirection);
+                    if(SpriteManager.getInstance().getTanks().size() < 1){
+                        SpriteManager.getInstance().getTanks().add(new Tank()) ;
+                    }
 
                     long endTime = System.currentTimeMillis();
                     deltaTime = endTime - startTime ;
@@ -162,6 +171,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
             }
         }
         SpriteManager.getInstance().reset();
+        myTank.destroy();
     }
 
     private boolean isHit(int[] a ,int[] b){
@@ -179,6 +189,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
     private float cur_x ;
     private float cur_y ;
 
+    private int mDirection = Const.DIRECT_UP ;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -187,18 +198,17 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 isTouch = true ;
                 pos_x = event.getX() ;
                 pos_y = event.getY() ;
+                myTank.setStatus(MyTank.STATUS_RUNNING);
                 break ;
             case MotionEvent.ACTION_MOVE:
                 isTouch = true ;
                 cur_x = event.getX() ;
                 cur_y = event.getY() ;
-                int direction = getDirection(cur_x ,cur_y) ;
+                mDirection = getDirection(cur_x, cur_y) ;
                 break ;
             case MotionEvent.ACTION_UP:
                 isTouch = false ;
-                if(SpriteManager.getInstance().getTanks().size() < 4){
-                    SpriteManager.getInstance().getTanks().add(new Tank()) ;
-                }
+                myTank.setStatus(MyTank.STATUS_UNKNOWN);
                 break ;
         }
         return true;
@@ -206,7 +216,7 @@ public class FlyView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
 
     private int getDirection(float x ,float y){
-        int direction = -1 ;
+        int direction = Const.DIRECT_UP ;
         float dir_x = x - pos_x ;
         float dir_y = y - pos_y ;
         if(dir_x > TOUCH_DISTANCE){

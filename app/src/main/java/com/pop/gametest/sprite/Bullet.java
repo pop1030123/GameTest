@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 
+import com.pop.gametest.Const;
 import com.pop.gametest.view.FlyView;
 
 /**
@@ -14,8 +15,9 @@ public class Bullet implements Sprite {
 
     private int left ;
     private int top ;
+    private int direction ;
 
-    private static int STEP = FlyView.UNIT ;
+    private static int STEP = FlyView.UNIT/2 ;
     private Callback mCallback ;
 
     public static int BULLET_SIZE ;
@@ -30,19 +32,26 @@ public class Bullet implements Sprite {
         sBmp = Bitmap.createBitmap(FlyView.sSheet ,FlyView.UNIT*5+clip_unit,FlyView.UNIT*2+clip_unit,FlyView.UNIT-clip_unit,FlyView.UNIT-clip_unit ,matrix ,false);
     }
 
-    public Bullet(int l ,int t ,Callback c){
+    public Bullet(int l ,int t ,int direction ,Callback c){
         // shoot at head of tank
-        if(t == 0){
-            l += FlyView.SCALED_UNIT ;
-        }else if (l == Tank.REGION_X){
-            t += FlyView.SCALED_UNIT ;
-        }else if (t == Tank.REGION_Y){
-            l -= FlyView.SCALED_UNIT ;
-        }else if(l == 0){
-            t -= FlyView.SCALED_UNIT ;
+        switch (direction)
+        {
+            case Const.DIRECT_UP:
+                t -= FlyView.SCALED_UNIT ;
+                break ;
+            case Const.DIRECT_DOWN:
+                t += FlyView.SCALED_UNIT ;
+                break ;
+            case Const.DIRECT_LEFT:
+                l -= FlyView.SCALED_UNIT ;
+                break ;
+            case Const.DIRECT_RIGHT:
+                l += FlyView.SCALED_UNIT ;
+                break ;
         }
         left = l ;
         top = t ;
+        this.direction = direction ;
         mCallback = c ;
     }
 
@@ -51,16 +60,20 @@ public class Bullet implements Sprite {
     }
 
     public void calStep(){
-        if(top == 0){
-            left += STEP ;
-        }else if (left == Tank.REGION_X){
-            top  += STEP ;
-        }else if (top == Tank.REGION_Y){
-            left -= STEP ;
-        }else if(left == 0){
-            top -= STEP ;
+        switch (direction){
+            case Const.DIRECT_UP:
+                top -= STEP ;
+                break ;
+            case Const.DIRECT_DOWN:
+                top += STEP ;
+                break ;
+            case Const.DIRECT_LEFT:
+                left -= STEP ;
+                break ;
+            case Const.DIRECT_RIGHT:
+                left += STEP ;
+                break ;
         }
-
         if(left > Tank.REGION_X || top > Tank.REGION_Y || left<0 || top<0){
             mCallback.onOutRegion(this);
         }
