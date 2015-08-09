@@ -56,19 +56,19 @@ public class SpriteManager implements Bullet.Callback ,Explode.Callback {
     @Override
     public void onOutRegion(Bullet b) {
 //        L.d(TAG, "onOutRegion:" + b) ;
-        mBullets.remove(b) ;
+        addExpired(b);
     }
 
     @Override
     public void onExplodeEnd(Explode explode) {
         L.d(TAG ,"onExplodeEnd:"+explode);
-        mExplodes.remove(explode) ;
+        getExplodes().remove(explode) ;
     }
 
     public void clearExpired(){
         if(mExpiredBullets.size()>0){
             L.d(TAG ,"clearExpired bullet:"+mExpiredBullets.size());
-            mBullets.removeAll(mExpiredBullets) ;
+            getBullets().removeAll(mExpiredBullets) ;
             mExpiredBullets.clear();
         }
         if(mExpiredTanks.size()>0){
@@ -76,7 +76,7 @@ public class SpriteManager implements Bullet.Callback ,Explode.Callback {
             for (Tank t:mExpiredTanks){
                 t.destroy();
             }
-            mTanks.removeAll(mExpiredTanks) ;
+            getTanks().removeAll(mExpiredTanks) ;
             mExpiredTanks.clear();
         }
     }
